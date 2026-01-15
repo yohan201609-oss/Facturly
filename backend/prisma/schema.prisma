@@ -1,0 +1,118 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                String    @id @default(uuid())
+  email             String    @unique
+  password          String
+  isPremium         Boolean   @default(false)
+  premiumExpiresAt  DateTime?
+  
+  // Perfil
+  companyName       String?
+  taxId             String?
+  address           String?
+  city              String?
+  state             String?
+  zipCode           String?
+  country           String?
+  phone             String?
+  website           String?
+  logoUrl           String?
+  
+  // Configuración
+  invoicePrefix     String    @default("INV")
+  invoiceCounter    Int       @default(1)
+  defaultCurrency   String    @default("USD")
+  brandColor        String    @default("#3B82F6")
+  
+  invoices          Invoice[]
+  clients           Client[]
+  
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+}
+
+model Client {
+  id          String    @id @default(uuid())
+  userId      String
+  user        User      @relation(fields: [userId], references: [id])
+  
+  name        String
+  email       String?
+  phone       String?
+  taxId       String?
+  address     String?
+  city        String?
+  state       String?
+  zipCode     String?
+  country     String?
+  notes       String?
+  
+  invoices    Invoice[]
+  
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+model Invoice {
+  id              String        @id @default(uuid())
+  userId          String
+  user            User          @relation(fields: [userId], references: [id])
+  clientId        String
+  client          Client        @relation(fields: [clientId], references: [id])
+  
+  invoiceNumber   String
+  status          InvoiceStatus @default(DRAFT)
+  
+  issueDate       DateTime
+  dueDate         DateTime
+  paidDate        DateTime?
+  
+  currency        String        @default("USD")
+  subtotal        Float
+  taxRate         Float         @default(0)
+  taxAmount       Float
+  discountAmount  Float         @default(0)
+  total           Float
+  
+  notes           String?
+  terms           String?
+  
+  items           InvoiceItem[]
+  
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+  
+  @@unique([userId, invoiceNumber])
+}
+
+model InvoiceItem {
+  id          String   @id @default(uuid())
+  invoiceId   String
+  invoice     Invoice  @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  
+  description String
+  quantity    Float
+  unitPrice   Float
+  discount    Float    @default(0)
+  subtotal    Float
+  
+  order       Int
+  
+  createdAt   DateTime @default(now())
+}
+
+enum InvoiceStatus {
+  DRAFT
+  SENT
+  PAID
+  OVERDUE
+  CANCELLED
+}
