@@ -1,8 +1,11 @@
 import axios from 'axios';
 
-const baseURL = import.meta.env.PROD 
-  ? 'https://facturly-git4.onrender.com/api' 
-  : '/api';
+// Detectamos si estamos en localhost o en el dominio de Render
+const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+
+const baseURL = isLocalhost 
+  ? '/api' 
+  : 'https://facturly-git4.onrender.com/api';
 
 const api = axios.create({
   baseURL,
