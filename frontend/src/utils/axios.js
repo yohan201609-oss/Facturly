@@ -1,7 +1,11 @@
 import axios from 'axios';
 
+const baseURL = import.meta.env.PROD 
+  ? 'https://facturly-git4.onrender.com/api' 
+  : '/api';
+
 const api = axios.create({
-  baseURL: '/api',
+  baseURL,
 });
 
 api.interceptors.request.use((config) => {
