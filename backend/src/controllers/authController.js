@@ -104,6 +104,7 @@ const getMe = async (req, res, next) => {
         logoUrl: true,
         isPremium: true,
         invoicePrefix: true,
+        invoiceCounter: true,
         defaultCurrency: true,
         brandColor: true,
       },

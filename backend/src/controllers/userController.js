@@ -11,9 +11,9 @@ const profileSchema = z.object({
   country: z.string().optional(),
   phone: z.string().optional(),
   website: z.string().optional(),
-  invoicePrefix: z.string().max(5).default('INV'),
-  defaultCurrency: z.string().default('USD'),
-  brandColor: z.string().default('#3B82F6'),
+  invoicePrefix: z.string().max(10).optional(),
+  defaultCurrency: z.string().optional(),
+  brandColor: z.string().optional(),
 });
 
 // @desc    Update user profile
@@ -21,15 +21,22 @@ const profileSchema = z.object({
 // @access  Private
 const updateProfile = async (req, res, next) => {
   try {
+    console.log('--- ACTUALIZANDO PERFIL ---');
+    console.log('ID Usuario:', req.user.id);
+    console.log('Datos recibidos:', req.body);
+    
     const validatedData = profileSchema.parse(req.body);
+    console.log('Datos validados:', validatedData);
 
     const updatedUser = await prisma.user.update({
       where: { id: req.user.id },
       data: validatedData,
     });
 
+    console.log('Usuario actualizado correctamente');
     res.json(updatedUser);
   } catch (error) {
+    console.error('Error en updateProfile:', error);
     if (error instanceof z.ZodError) {
       res.status(400).json({ message: error.errors[0].message });
     } else {

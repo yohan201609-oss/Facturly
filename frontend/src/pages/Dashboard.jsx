@@ -18,7 +18,8 @@ import {
   ArrowUpRight,
   ArrowDownRight,
   ChevronRight,
-  Download
+  Download,
+  Plus
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';

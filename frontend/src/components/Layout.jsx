@@ -1,5 +1,6 @@
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { useTheme } from '../context/ThemeContext';
 import { 
   LayoutDashboard, 
   Users, 
@@ -14,7 +15,7 @@ import {
   Moon,
   Sun
 } from 'lucide-react';
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const sidebarItems = [
@@ -26,25 +27,10 @@ const sidebarItems = [
 
 export default function Layout({ children }) {
   const { user, logout } = useAuth();
+  const { isDarkMode, toggleTheme } = useTheme();
   const navigate = useNavigate();
   const location = useLocation();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [isDarkMode, setIsDarkMode] = useState(() => {
-    if (typeof window !== 'undefined') {
-      return localStorage.getItem('darkMode') === 'true';
-    }
-    return false;
-  });
-
-  useEffect(() => {
-    if (isDarkMode) {
-      document.documentElement.classList.add('dark');
-      localStorage.setItem('darkMode', 'true');
-    } else {
-      document.documentElement.classList.remove('dark');
-      localStorage.setItem('darkMode', 'false');
-    }
-  }, [isDarkMode]);
 
   const handleLogout = () => {
     logout();
@@ -206,8 +192,12 @@ export default function Layout({ children }) {
             
             <div className="flex items-center gap-2 md:gap-4">
               <button 
-                onClick={() => setIsDarkMode(!isDarkMode)}
-                className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl transition-colors text-gray-600 dark:text-gray-400"
+                type="button"
+                onClick={(e) => {
+                  e.preventDefault();
+                  toggleTheme();
+                }}
+                className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl transition-all text-gray-600 dark:text-gray-400 active:scale-90"
                 title={isDarkMode ? 'Cambiar a modo claro' : 'Cambiar a modo oscuro'}
               >
                 {isDarkMode ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
