@@ -1,10 +1,12 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import api from '../utils/axios';
 import Layout from '../components/Layout';
-import { Plus, Search, MoreVertical, Edit2, Trash2, Mail, Phone } from 'lucide-react';
+import EmptyState from '../components/EmptyState';
+import { Plus, Search, MoreVertical, Edit2, Trash2, Mail, Phone, Users, ChevronRight, Globe } from 'lucide-react';
 import { useState } from 'react';
 import { toast } from 'sonner';
 import ClientFormModal from '../components/ClientFormModal';
+import { motion, AnimatePresence } from 'framer-motion';
 
 export default function Clients() {
   const [searchTerm, setSearchTerm] = useState('');
@@ -54,86 +56,122 @@ export default function Clients() {
 
   return (
     <Layout>
-      <div className="sm:flex sm:items-center sm:justify-between mb-8">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Clientes</h1>
-          <p className="mt-2 text-sm text-gray-700">
-            Gestiona la información de contacto de tus clientes.
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white transition-colors">Clientes</h1>
+          <p className="mt-1 text-gray-500 dark:text-gray-400 transition-colors">
+            Directorio de contactos y empresas para tu facturación.
           </p>
         </div>
-        <div className="mt-4 sm:mt-0">
-          <button
-            onClick={handleAdd}
-            className="inline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-brand-600 hover:bg-brand-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-500"
-          >
-            <Plus className="mr-2 h-4 w-4" />
-            Nuevo Cliente
-          </button>
+        <button
+          onClick={handleAdd}
+          className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-blue-600 text-white font-bold rounded-xl hover:bg-blue-700 transition-all shadow-lg shadow-blue-100 dark:shadow-none active:scale-95"
+        >
+          <Plus className="h-5 w-5" />
+          Nuevo Cliente
+        </button>
+      </div>
+
+      <div className="bg-white dark:bg-gray-900 p-4 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800 mb-6 transition-colors">
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+          <input
+            type="text"
+            className="block w-full pl-10 pr-3 py-3 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all outline-none text-sm dark:text-gray-200"
+            placeholder="Buscar por nombre, email o empresa..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
         </div>
       </div>
 
-      <div className="mb-4 relative">
-        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-          <Search className="h-5 w-5 text-gray-400" />
+      {isLoading ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {[1, 2, 3, 4, 5, 6].map(i => (
+            <div key={i} className="h-48 bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 animate-pulse transition-colors"></div>
+          ))}
         </div>
-        <input
-          type="text"
-          className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-brand-500 focus:border-brand-500 sm:text-sm"
-          placeholder="Buscar por nombre o email..."
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
+      ) : filteredClients?.length === 0 ? (
+        <EmptyState 
+          title={searchTerm ? "No se encontraron clientes" : "Tu lista de clientes está vacía"}
+          description={searchTerm ? "Intenta con otro término de búsqueda." : "Agrega tu primer cliente para empezar a facturar más rápido."}
+          icon={Users}
+          actionLabel={searchTerm ? null : "Agregar Cliente"}
+          onAction={handleAdd}
         />
-      </div>
-
-      <div className="bg-white shadow overflow-hidden sm:rounded-md">
-        {isLoading ? (
-          <div className="p-8 text-center text-gray-500">Cargando clientes...</div>
-        ) : filteredClients?.length === 0 ? (
-          <div className="p-8 text-center text-gray-500">No se encontraron clientes.</div>
-        ) : (
-          <ul className="divide-y divide-gray-200">
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <AnimatePresence>
             {filteredClients?.map((client) => (
-              <li key={client.id}>
-                <div className="px-4 py-4 flex items-center sm:px-6 hover:bg-gray-50 transition-colors">
-                  <div className="min-w-0 flex-1 sm:flex sm:items-center sm:justify-between">
-                    <div>
-                      <div className="flex text-sm font-medium text-brand-600 truncate">
-                        {client.name}
-                      </div>
-                      <div className="mt-2 flex">
-                        <div className="flex items-center text-sm text-gray-500 mr-6">
-                          <Mail className="flex-shrink-0 mr-1.5 h-4 w-4 text-gray-400" />
-                          {client.email || 'Sin email'}
-                        </div>
-                        {client.phone && (
-                          <div className="flex items-center text-sm text-gray-500">
-                            <Phone className="flex-shrink-0 mr-1.5 h-4 w-4 text-gray-400" />
-                            {client.phone}
-                          </div>
-                        )}
-                      </div>
-                    </div>
+              <motion.div
+                layout
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.95 }}
+                key={client.id}
+                className="bg-white dark:bg-gray-900 p-6 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800 hover:shadow-md hover:border-blue-100 dark:hover:border-blue-900/50 transition-all group"
+              >
+                <div className="flex items-start justify-between mb-4">
+                  <div className="h-12 w-12 rounded-xl bg-blue-50 dark:bg-blue-900/20 flex items-center justify-center text-blue-600 dark:text-blue-400 font-bold text-xl transition-colors">
+                    {client.name?.[0].toUpperCase()}
                   </div>
-                  <div className="ml-5 flex-shrink-0 flex space-x-2">
+                  <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                     <button
                       onClick={() => handleEdit(client)}
-                      className="p-2 text-gray-400 hover:text-brand-600 transition-colors"
+                      className="p-2 text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-all"
                     >
-                      <Edit2 className="h-5 w-5" />
+                      <Edit2 className="h-4 w-4" />
                     </button>
                     <button
                       onClick={() => handleDelete(client.id)}
-                      className="p-2 text-gray-400 hover:text-red-600 transition-colors"
+                      className="p-2 text-gray-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-all"
                     >
-                      <Trash2 className="h-5 w-5" />
+                      <Trash2 className="h-4 w-4" />
                     </button>
                   </div>
                 </div>
-              </li>
+                
+                <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100 mb-1 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors text-left">
+                  {client.name}
+                </h3>
+                
+                <div className="space-y-2 mt-4">
+                  <div className="flex items-center text-sm text-gray-500 dark:text-gray-400 transition-colors">
+                    <Mail className="flex-shrink-0 mr-2 h-4 w-4 text-gray-400" />
+                    <span className="truncate">{client.email || 'Sin correo electrónico'}</span>
+                  </div>
+                  {client.phone && (
+                    <div className="flex items-center text-sm text-gray-500 dark:text-gray-400 transition-colors">
+                      <Phone className="flex-shrink-0 mr-2 h-4 w-4 text-gray-400" />
+                      <span>{client.phone}</span>
+                    </div>
+                  )}
+                  {client.taxId && (
+                    <div className="flex items-center text-sm text-gray-500 dark:text-gray-400 transition-colors">
+                      <Globe className="flex-shrink-0 mr-2 h-4 w-4 text-gray-400" />
+                      <span>RNC/ID: {client.taxId}</span>
+                    </div>
+                  )}
+                </div>
+
+                <div className="mt-6 pt-4 border-t border-gray-50 dark:border-gray-800 flex justify-between items-center transition-colors">
+                   <span className="text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest">
+                    Cliente Activo
+                  </span>
+                  <button 
+                    onClick={() => handleEdit(client)}
+                    className="text-xs font-bold text-blue-600 dark:text-blue-400 flex items-center gap-1 hover:gap-2 transition-all"
+                  >
+                    Detalles
+                    <ChevronRight className="w-3 h-3" />
+                  </button>
+                </div>
+              </motion.div>
             ))}
-          </ul>
-        )}
-      </div>
+          </AnimatePresence>
+        </div>
+      )}
+
 
       <ClientFormModal
         isOpen={isModalOpen}
@@ -143,3 +181,4 @@ export default function Clients() {
     </Layout>
   );
 }
+
