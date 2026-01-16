@@ -5,7 +5,7 @@ const isLocalhost = window.location.hostname === 'localhost' || window.location.
 
 const baseURL = isLocalhost 
   ? '/api' 
-  : 'https://facturly-git4.onrender.com/api';
+  : 'https://facturly-glt4.onrender.com/api';
 
 const api = axios.create({
   baseURL,
